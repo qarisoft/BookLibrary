@@ -1,16 +1,28 @@
-﻿using BookLibrary.Entities;
+﻿using System.Security.Claims;
+using BookLibrary.Data;
+using BookLibrary.Entities;
 using BookLibrary.Models;
 using BookLibrary.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLibrary.Controllers
 
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IAuthService authService) : Controller
+    public class AuthController(IAuthService authService, AppDbContext context) : Controller
     {
+        
+        //private UserManager<User> _userManager;
+
+        //public AuthController(UserManager<User> userManager)
+        //{
+        //    _userManager = userManager;
+        //}
+
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(UserDto request)
         {
@@ -45,7 +57,16 @@ namespace BookLibrary.Controllers
         [HttpGet]
         public IActionResult AuthenticatedOnlyEndpoint()
         {
-            return Ok("You are authenticated!");
+            var id = this.User.FindFirst(ClaimTypes.Name);
+            
+            //id.Subject;
+            //return Ok(this.User);
+            //IQueryable<bool> user = context.Users.Select(s => s.Id.ToString() == id.);
+            //user.w
+            var user = context.Users.FirstOrDefault(u => u.Username == id!.Value);
+
+
+            return Ok($"You are authenticated!{user?.Username} {user?.Id}");
         }
 
         [Authorize(Roles = "Admin")]

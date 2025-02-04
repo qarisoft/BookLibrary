@@ -29,9 +29,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true
         };
     });
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:3000").AllowAnyHeader()
+                                                  .AllowAnyMethod();
+                      });
+});
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    await DbSeeder.SeedDefaultData(scope.ServiceProvider);
+}
+
+app.UseCors(MyAllowSpecificOrigins);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
